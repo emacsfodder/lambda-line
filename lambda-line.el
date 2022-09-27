@@ -700,19 +700,26 @@ STATUS, NAME, PRIMARY, and SECONDARY are always displayed. TERTIARY is displayed
      (propertize " " 'face face-modeline 'display `(space :align-to (- right ,right-len)))
      right)))
 
+(defun lambda-line-clockface-icons-unicode (hours minutes)
+  "Return ClockFace icon unicode for HOURS and MINUTES."
+  (let* ((minute (- minutes (% minutes 5)))
+         (offset (+ (* (% hours 12) 12) (* 12 (/ minute 60)))))
+       (+ offset #xE800)))
+
 ;;;; Mode Functions
 (defun lambda-line-time ()
   "Display the time when `display-time-mode' is non-nil."
   (when display-time-mode
-    (let* ((hour (string-to-number (format-time-string "%I")))
-           (icon (all-the-icons-wicon (format "time-%s" hour) :height 1.3 :v-adjust 0.0)))
+    (let* ((time-unicode (cl-destructuring-bind
+                             (_ _ hour minute &rest n)
+                             (decode-time) (lambda-line-clockface-icons-unicode hour minute))))
       (concat
         (unless lambda-line-icon-time
           (if display-time-day-and-date
               (propertize (format-time-string lambda-line-time-day-and-date-format))
             (propertize (format-time-string lambda-line-time-format ) 'face `(:height 0.9))))
         (propertize
-          (format " %s " icon) 'face `(:height 1.0 :family ,(all-the-icons-wicon-family)) 'display '(raise -0.0))))))
+          (format " %s " (char-to-string time-unicode) 'face `(:height 1.0 :family "ClockFace") 'display '(raise -0.0))))))
 
 ;;;; Default display
 (defun lambda-line-default-mode ()
